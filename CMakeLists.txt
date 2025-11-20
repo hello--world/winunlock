@@ -22,6 +22,27 @@ target_include_directories(WinUnlock PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# 确保 Windows SDK 包含路径被正确设置
+if(MSVC)
+    # 获取 Windows SDK 版本
+    get_filename_component(WINDOWS_SDK_DIR "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows Kits\\Installed Roots;KitsRoot10]" ABSOLUTE)
+    if(WINDOWS_SDK_DIR)
+        # 查找最新的 SDK 版本
+        file(GLOB SDK_VERSIONS "${WINDOWS_SDK_DIR}Include/*")
+        if(SDK_VERSIONS)
+            list(SORT SDK_VERSIONS)
+            list(REVERSE SDK_VERSIONS)
+            list(GET SDK_VERSIONS 0 LATEST_SDK)
+            get_filename_component(LATEST_SDK_VERSION ${LATEST_SDK} NAME)
+            message(STATUS "Found Windows SDK version: ${LATEST_SDK_VERSION}")
+            target_include_directories(WinUnlock PRIVATE
+                "${WINDOWS_SDK_DIR}Include/${LATEST_SDK_VERSION}/um"
+                "${WINDOWS_SDK_DIR}Include/${LATEST_SDK_VERSION}/shared"
+            )
+        endif()
+    endif()
+endif()
+
 # 链接库
 target_link_libraries(WinUnlock PRIVATE
     netapi32

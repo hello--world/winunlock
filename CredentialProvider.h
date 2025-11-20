@@ -22,14 +22,9 @@
 #include <comdef.h>
 
 // 包含凭据提供程序头文件（需要 Windows SDK 8.0+）
-// 注意：credentialprovider.h 位于 Windows SDK 的 Include 目录中
-// 如果找不到，可能需要安装 Windows 8 SDK 或更高版本
+// 注意：credentialprovider.h 位于 Windows SDK 的 um 子目录中
+// 尝试包含，如果失败会在编译时显示错误
 #include <credentialprovider.h>
-
-// 如果 credentialprovider.h 仍然未定义，尝试包含备用路径
-#if !defined(ICredentialProvider) && !defined(_CREDENTIAL_PROVIDER_H_)
-    #error "credentialprovider.h not found. Please ensure Windows SDK 8.0 or higher is installed."
-#endif
 
 #include <shlguid.h>
 #include <shlobj.h>
