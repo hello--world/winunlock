@@ -18,17 +18,25 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
       
-    - name: Setup Windows SDK
-      uses: microsoft/setup-msbuild@v1
-      with:
-        msbuild-architecture: x64
+    - name: Find Windows SDK
+      shell: powershell
+      run: |
+        $sdkPath = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" | Sort-Object Name -Descending | Select-Object -First 1).FullName
+        Write-Host "Found Windows SDK at: $sdkPath"
+        $credProviderPath = Join-Path $sdkPath "um\credentialprovider.h"
+        if (Test-Path $credProviderPath) {
+          Write-Host "credentialprovider.h found at: $credProviderPath"
+        } else {
+          Write-Host "credentialprovider.h NOT found"
+          Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" | ForEach-Object { Write-Host $_.Name }
+        }
         
     - name: Restore NuGet packages
       run: nuget restore winunlock.sln || true
       
     - name: Build Release x64
       run: |
-        msbuild winunlock.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /m
+        msbuild winunlock.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /m /v:minimal
         
     - name: Upload DLL artifact
       uses: actions/upload-artifact@v4
