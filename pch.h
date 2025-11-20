@@ -6,6 +6,8 @@
 #include <shlwapi.h>
 #include <strsafe.h>
 #include <comdef.h>
+#include <new>
+#include <ntsecapi.h>
 
 #endif //PCH_H
 
