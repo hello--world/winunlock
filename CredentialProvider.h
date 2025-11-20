@@ -1,11 +1,16 @@
 #pragma once
 
 // 确保包含必要的 Windows 头文件
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <windows.h>
 #include <unknwn.h>
+#include <objbase.h>
 
-// 包含凭据提供程序头文件（需要 Windows SDK 8.0+）
+// 确保包含凭据提供程序头文件（需要 Windows SDK 8.0+）
+// 注意：credentialprovider.h 需要特定的 Windows SDK 版本
 #include <credentialprovider.h>
 
 #include <shlguid.h>
@@ -17,6 +22,12 @@
 #include <wincred.h>
 #include <new>
 #include <shlwapi.h>
+
+// 如果 credentialprovider.h 未定义，尝试使用备用方法
+#ifndef ICredentialProvider
+// 这里应该不会执行，但如果 credentialprovider.h 不存在，我们需要定义接口
+// 实际上，如果头文件不存在，编译会失败
+#endif
 
 // {A1B2C3D4-E5F6-4A5B-8C9D-0E1F2A3B4C5D}
 DEFINE_GUID(CLSID_WinUnlockCredentialProvider,

@@ -44,6 +44,9 @@ set_target_properties(WinUnlock PROPERTIES
 
 # 编译选项
 if(MSVC)
+    # 设置 Windows SDK 版本（确保包含 credentialprovider.h）
+    set(CMAKE_SYSTEM_VERSION "10.0" CACHE STRING "Windows SDK Version")
+    
     target_compile_options(WinUnlock PRIVATE
         /W4
         /WX-
@@ -54,7 +57,7 @@ if(MSVC)
     set_target_properties(WinUnlock PROPERTIES
         LINK_FLAGS "/SUBSYSTEM:WINDOWS"
     )
-    # 设置 Windows SDK 版本（确保包含 credentialprovider.h）
+    # 确保使用 Windows 10 SDK
     set_target_properties(WinUnlock PROPERTIES
         VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0"
     )
