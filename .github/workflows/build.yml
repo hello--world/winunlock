@@ -26,11 +26,16 @@ jobs:
         with:
           cmake-version: '3.24'
       
+      - name: Check Windows SDK
+        run: |
+          echo "Checking for Windows SDK..."
+          dir "C:\Program Files (x86)\Windows Kits\10\Include" /s /b | findstr credentialprovider.h
+      
       - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_SYSTEM_VERSION=10.0
+          cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_SYSTEM_VERSION=10.0 -T v143
       
       - name: Build DLL
         run: |
