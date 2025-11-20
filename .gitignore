@@ -36,6 +36,10 @@ Release/
 *.sbr
 *.tmp
 
+# IDE 配置文件
+.idea/
+*.iml
+
 # Rust 构建产物
 target/
 Cargo.lock
