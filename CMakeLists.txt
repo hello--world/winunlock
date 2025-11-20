@@ -54,6 +54,10 @@ if(MSVC)
     set_target_properties(WinUnlock PROPERTIES
         LINK_FLAGS "/SUBSYSTEM:WINDOWS"
     )
+    # 设置 Windows SDK 版本（确保包含 credentialprovider.h）
+    set_target_properties(WinUnlock PROPERTIES
+        VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0"
+    )
 else()
     target_compile_options(WinUnlock PRIVATE
         -Wall

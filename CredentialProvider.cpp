@@ -5,6 +5,11 @@
 #include <sddl.h>
 #include <ntsecapi.h>
 #include <subauth.h>
+#include <new>
+
+// 前向声明 DLL 引用计数函数
+extern void DllAddRef();
+extern void DllRelease();
 
 #pragma comment(lib, "netapi32.lib")
 #pragma comment(lib, "wtsapi32.lib")

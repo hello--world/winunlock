@@ -1,7 +1,13 @@
 #pragma once
 
+// 确保包含必要的 Windows 头文件
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <unknwn.h>
+
+// 包含凭据提供程序头文件（需要 Windows SDK 8.0+）
 #include <credentialprovider.h>
+
 #include <shlguid.h>
 #include <shlobj.h>
 #include <strsafe.h>
@@ -9,6 +15,8 @@
 #include <comdef.h>
 #include <ntsecapi.h>
 #include <wincred.h>
+#include <new>
+#include <shlwapi.h>
 
 // {A1B2C3D4-E5F6-4A5B-8C9D-0E1F2A3B4C5D}
 DEFINE_GUID(CLSID_WinUnlockCredentialProvider,
