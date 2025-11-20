@@ -16,10 +16,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v2
       
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v1
@@ -38,7 +38,7 @@ jobs:
           cmake --build . --config Release
       
       - name: Upload DLL artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: WinUnlock.dll
           path: |
@@ -54,10 +54,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
       
@@ -70,7 +70,7 @@ jobs:
         run: npm install
       
       - name: Download DLL artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: WinUnlock.dll
           path: src-tauri/
@@ -88,7 +88,7 @@ jobs:
           prerelease: false
       
       - name: Upload Tauri artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: WinUnlock-Installer
           path: src-tauri/target/release/bundle/
