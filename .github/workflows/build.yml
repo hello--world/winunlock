@@ -1,0 +1,86 @@
+name: Build WinUnlock
+
+on:
+  push:
+    tags:
+      - 'v*'  # 只在推送 v 开头的 tag 时触发
+  workflow_dispatch:  # 保留手动触发功能
+
+jobs:
+  build-cpp:
+    name: Build C++ Credential Provider
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1
+      
+    - name: Restore NuGet packages
+      run: nuget restore winunlock.sln || true
+      
+    - name: Build Release x64
+      run: |
+        msbuild winunlock.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /m
+        
+    - name: Upload DLL artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: winunlock-dll
+        path: x64/Release/winunlock.dll
+        retention-days: 30
+
+  build-tauri:
+    name: Build Tauri Config Tool
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}  # 使用触发工作流的 tag
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: tauri-app/package.json
+        
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        
+    - name: Install Tauri CLI
+      run: npm install -g @tauri-apps/cli
+      
+    - name: Install dependencies
+      working-directory: tauri-app
+      run: npm install
+      
+    - name: Build Tauri app
+      working-directory: tauri-app
+      run: npm run build
+      env:
+        TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+        TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        
+    - name: Upload Tauri artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: winunlock-config-tool
+        path: tauri-app/src-tauri/target/release/*.exe
+        retention-days: 30
+
+  build-all:
+    name: Build Status
+    runs-on: ubuntu-latest
+    needs: [build-cpp, build-tauri]
+    
+    steps:
+    - name: Build completed
+      run: echo "All builds completed successfully"
+

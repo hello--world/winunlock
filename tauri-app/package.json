@@ -1,0 +1,18 @@
+{
+  "name": "winunlock-config",
+  "version": "1.0.0",
+  "description": "WinUnlock 凭据提供程序配置工具",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.5.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.0"
+  }
+}
+
