@@ -8,7 +8,17 @@
 #include <comdef.h>
 #include <new>
 #include <ntsecapi.h>
-#include <credentialprovider.h>
+
+// Try to include system credentialprovider.h first, fallback to local copy
+#ifdef _WIN32
+    #if __has_include(<credentialprovider.h>)
+        #include <credentialprovider.h>
+    #else
+        #include "credentialprovider.h"
+    #endif
+#else
+    #include "credentialprovider.h"
+#endif
 
 #endif //PCH_H
 
