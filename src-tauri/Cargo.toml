@@ -1,0 +1,29 @@
+[package]
+name = "winunlock"
+version = "1.0.0"
+description = "Windows 自动解锁凭据提供程序配置工具"
+authors = ["WinUnlock Team"]
+license = "MIT"
+repository = "https://github.com/hello--world/winunlock"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = ["shell-execute", "shell-open", "fs-all", "path-all", "process-relaunch"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+winreg = "0.50"
+base64 = "0.21"
+windows = { version = "0.52", features = [
+    "Win32_Foundation",
+    "Win32_System_Registry",
+    "Win32_Security_Cryptography",
+    "Win32_System_Memory"
+] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+

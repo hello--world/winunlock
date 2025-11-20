@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinUnlock 配置工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .warning strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔓 WinUnlock 配置工具</h1>
+        <p class="subtitle">配置 Windows 自动解锁凭据提供程序</p>
+
+        <div class="warning">
+            <strong>⚠️ 安全提示</strong>
+            此工具仅用于受控环境。请确保您的计算机安全，密码将使用 DPAPI 加密存储在本地注册表中。
+        </div>
+
+        <div class="info-box">
+            <strong>当前用户：</strong><span id="currentUser">加载中...</span><br>
+            <strong>计算机名：</strong><span id="computerName">加载中...</span><br>
+            <strong>密码状态：</strong><span id="passwordStatus">检查中...</span>
+        </div>
+
+        <form id="configForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="输入要用于自动解锁的用户名" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="输入该用户的密码" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">确认密码</label>
+                <input type="password" id="confirmPassword" placeholder="再次输入密码" required>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-primary">保存配置</button>
+                <button type="button" class="btn-secondary" id="registerBtn">注册 DLL</button>
+            </div>
+        </form>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script type="module">
+        import { invoke } from '@tauri-apps/api/tauri';
+
+        // 加载用户信息
+        async function loadUserInfo() {
+            try {
+                const user = await invoke('get_current_user');
+                document.getElementById('currentUser').textContent = user;
+                
+                const computer = await invoke('get_computer_name');
+                document.getElementById('computerName').textContent = computer;
+                
+                const passwordSet = await invoke('check_password_set');
+                document.getElementById('passwordStatus').textContent = passwordSet ? '已设置' : '未设置';
+                
+                // 设置默认用户名
+                document.getElementById('username').value = user.split('\\').pop() || user;
+            } catch (error) {
+                console.error('加载用户信息失败:', error);
+                showStatus('加载用户信息失败: ' + error, 'error');
+            }
+        }
+
+        // 显示状态消息
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + type;
+            setTimeout(() => {
+                statusEl.className = 'status';
+            }, 5000);
+        }
+
+        // 表单提交
+        document.getElementById('configForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                showStatus('两次输入的密码不一致', 'error');
+                return;
+            }
+            
+            if (password.length === 0) {
+                showStatus('密码不能为空', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('正在保存配置...', 'info');
+                const result = await invoke('set_password', { password });
+                showStatus(result, 'success');
+                
+                // 更新密码状态
+                const passwordSet = await invoke('check_password_set');
+                document.getElementById('passwordStatus').textContent = passwordSet ? '已设置' : '未设置';
+            } catch (error) {
+                showStatus('保存失败: ' + error, 'error');
+            }
+        });
+
+        // 注册 DLL 按钮
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            try {
+                showStatus('正在注册 DLL...', 'info');
+                // 这里需要指定 DLL 的路径
+                const dllPath = 'WinUnlock.dll'; // 实际使用时需要完整路径
+                const result = await invoke('register_dll', { dllPath });
+                showStatus(result, 'success');
+            } catch (error) {
+                showStatus('注册失败: ' + error, 'error');
+            }
+        });
+
+        // 页面加载时获取用户信息
+        loadUserInfo();
+    </script>
+</body>
+</html>
+

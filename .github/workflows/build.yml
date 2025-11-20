@@ -1,0 +1,94 @@
+name: Build WinUnlock
+
+on:
+  push:
+    branches: [ dev, main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  build-credential-provider:
+    name: Build Credential Provider DLL
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+      
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v1
+        with:
+          cmake-version: '3.24'
+      
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A x64
+      
+      - name: Build DLL
+        run: |
+          cd build
+          cmake --build . --config Release
+      
+      - name: Upload DLL artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: WinUnlock.dll
+          path: build/bin/Release/WinUnlock.dll
+          retention-days: 30
+
+  build-tauri-app:
+    name: Build Tauri Application
+    runs-on: windows-latest
+    needs: build-credential-provider
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Download DLL artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: WinUnlock.dll
+          path: src-tauri/
+      
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: .
+          tagName: v__VERSION__
+          releaseName: 'WinUnlock v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+      
+      - name: Upload Tauri artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: WinUnlock-Installer
+          path: src-tauri/target/release/bundle/
+          retention-days: 30
+

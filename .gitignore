@@ -1,0 +1,47 @@
+# 构建输出
+build/
+bin/
+lib/
+*.dll
+*.lib
+*.exp
+*.pdb
+*.obj
+*.ilk
+
+# Visual Studio
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake
+
+# Tauri
+src-tauri/target/
+dist/
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# 临时文件
+*.tmp
+*.bak
+*~
+
+# 日志
+*.log
+
+# IDE
+.idea/
+.vscode/
