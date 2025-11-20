@@ -14,6 +14,8 @@ Windows 凭据提供程序是 Windows 登录架构的一部分，允许开发者
 - ✅ 使用 DPAPI 加密存储密码
 - ✅ 支持本地账户解锁
 - ✅ 无需用户交互即可完成解锁
+- ✅ Tauri 图形界面配置工具
+- ✅ GitHub Actions 自动构建
 
 ## 系统要求
 
@@ -215,6 +217,30 @@ winunlock/
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request。
+
+## GitHub Actions 构建
+
+项目使用 GitHub Actions 进行自动构建。构建逻辑如下：
+
+- **触发条件**：只有当推送以 `v` 开头的 tag 时才会触发构建
+- **构建流程**：
+  1. 构建凭据提供程序 DLL（WinUnlock.dll）
+  2. 构建 Tauri 应用程序
+  3. 创建 GitHub Release（如果推送了 tag）
+
+### 创建 Release
+
+要触发构建和发布，需要创建一个以 `v` 开头的 tag：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+GitHub Actions 会自动：
+- 构建 DLL 和 Tauri 应用
+- 创建 GitHub Release
+- 上传构建产物
 
 ## 免责声明
 
