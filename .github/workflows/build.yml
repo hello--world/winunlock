@@ -28,7 +28,7 @@ jobs:
       
     - name: Build Release x64
       run: |
-        msbuild winunlock.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /p:WindowsTargetPlatformVersion=10.0.19041.0 /m
+        msbuild winunlock.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /m
         
     - name: Upload DLL artifact
       uses: actions/upload-artifact@v4
