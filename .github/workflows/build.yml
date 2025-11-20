@@ -18,17 +18,35 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
       
-    - name: Find Windows SDK
+    - name: Find Windows SDK and credentialprovider.h
       shell: powershell
       run: |
-        $sdkPath = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" | Sort-Object Name -Descending | Select-Object -First 1).FullName
-        Write-Host "Found Windows SDK at: $sdkPath"
-        $credProviderPath = Join-Path $sdkPath "um\credentialprovider.h"
-        if (Test-Path $credProviderPath) {
-          Write-Host "credentialprovider.h found at: $credProviderPath"
+        $sdkIncludePath = "C:\Program Files (x86)\Windows Kits\10\Include"
+        if (Test-Path $sdkIncludePath) {
+          $sdkVersions = Get-ChildItem $sdkIncludePath | Sort-Object Name -Descending
+          Write-Host "Available Windows SDK versions:"
+          $sdkVersions | ForEach-Object { Write-Host "  - $($_.Name)" }
+          
+          foreach ($sdkVersion in $sdkVersions) {
+            $credProviderPath = Join-Path $sdkVersion.FullName "um\credentialprovider.h"
+            if (Test-Path $credProviderPath) {
+              Write-Host "✓ credentialprovider.h found at: $credProviderPath"
+              break
+            } else {
+              Write-Host "✗ credentialprovider.h NOT found in $($sdkVersion.Name)"
+            }
+          }
+          
+          # Also check shared folder
+          $sharedPath = Join-Path $sdkVersions[0].FullName "shared"
+          Write-Host "Checking shared folder: $sharedPath"
+          if (Test-Path $sharedPath) {
+            Get-ChildItem $sharedPath -Recurse -Filter "credentialprovider.h" | ForEach-Object {
+              Write-Host "Found in shared: $($_.FullName)"
+            }
+          }
         } else {
-          Write-Host "credentialprovider.h NOT found"
-          Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" | ForEach-Object { Write-Host $_.Name }
+          Write-Host "Windows SDK Include path not found: $sdkIncludePath"
         }
         
     - name: Restore NuGet packages
