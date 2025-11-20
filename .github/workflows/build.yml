@@ -41,7 +41,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: WinUnlock.dll
-          path: build/bin/Release/WinUnlock.dll
+          path: |
+            build/bin/Release/WinUnlock.dll
+            build/bin/WinUnlock.dll
           retention-days: 30
 
   build-tauri-app:
