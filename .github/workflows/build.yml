@@ -27,9 +27,20 @@ jobs:
           cmake-version: '3.24'
       
       - name: Check Windows SDK
+        shell: pwsh
         run: |
-          echo "Checking for Windows SDK..."
-          dir "C:\Program Files (x86)\Windows Kits\10\Include" /s /b | findstr credentialprovider.h
+          Write-Host "Checking for Windows SDK..."
+          $sdkPath = "C:\Program Files (x86)\Windows Kits\10\Include"
+          if (Test-Path $sdkPath) {
+            $credProvider = Get-ChildItem -Path $sdkPath -Recurse -Filter "credentialprovider.h" -ErrorAction SilentlyContinue
+            if ($credProvider) {
+              Write-Host "Found credentialprovider.h at: $($credProvider.FullName)"
+            } else {
+              Write-Host "Warning: credentialprovider.h not found in SDK"
+            }
+          } else {
+            Write-Host "Warning: Windows SDK path not found"
+          }
       
       - name: Configure CMake
         run: |
