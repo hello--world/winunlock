@@ -5,13 +5,31 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+// 确保定义 Windows 版本（credentialprovider.h 需要 Windows 8+）
+#ifndef WINVER
+#define WINVER 0x0602  // Windows 8
+#endif
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0602  // Windows 8
+#endif
+#ifndef NTDDI_VERSION
+#define NTDDI_VERSION 0x06020000  // Windows 8
+#endif
+
 #include <windows.h>
 #include <unknwn.h>
 #include <objbase.h>
+#include <comdef.h>
 
-// 确保包含凭据提供程序头文件（需要 Windows SDK 8.0+）
-// 注意：credentialprovider.h 需要特定的 Windows SDK 版本
+// 包含凭据提供程序头文件（需要 Windows SDK 8.0+）
+// 注意：credentialprovider.h 位于 Windows SDK 的 Include 目录中
+// 如果找不到，可能需要安装 Windows 8 SDK 或更高版本
 #include <credentialprovider.h>
+
+// 如果 credentialprovider.h 仍然未定义，尝试包含备用路径
+#if !defined(ICredentialProvider) && !defined(_CREDENTIAL_PROVIDER_H_)
+    #error "credentialprovider.h not found. Please ensure Windows SDK 8.0 or higher is installed."
+#endif
 
 #include <shlguid.h>
 #include <shlobj.h>
