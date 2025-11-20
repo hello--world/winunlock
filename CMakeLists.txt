@@ -34,7 +34,6 @@ target_link_libraries(WinUnlock PRIVATE
     oleaut32
     secur32
     ntdll
-    advapi32
 )
 
 # 设置 DLL 输出名称
