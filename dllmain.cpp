@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <new>
 #include "CredentialProvider.h"
 
 HINSTANCE g_hinst = nullptr;
@@ -218,7 +219,16 @@ STDAPI DllUnregisterServer()
         CLSID_WinUnlockCredentialProvider.Data4[6],
         CLSID_WinUnlockCredentialProvider.Data4[7]);
     
-    SHDeleteKeyW(HKEY_CLASSES_ROOT, szKeyName);
+    // 递归删除注册表项
+    // 使用 RegDeleteTreeW（Windows Vista+）或手动删除
+    HKEY hKey = nullptr;
+    LONG lResult = RegOpenKeyExW(HKEY_CLASSES_ROOT, szKeyName, 0, KEY_ALL_ACCESS, &hKey);
+    if (lResult == ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        // 递归删除子项
+        lResult = RegDeleteTreeW(HKEY_CLASSES_ROOT, szKeyName);
+    }
     
     return hr;
 }
