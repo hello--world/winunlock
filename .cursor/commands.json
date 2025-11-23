@@ -1,0 +1,18 @@
+{
+  "commands": {
+    "auto-build": {
+      "description": "启动完全自动化构建流程，直到编译成功",
+      "command": "node scripts/auto-build-until-success.js",
+      "args": ["Auto commit: 自动构建修复"]
+    },
+    "check-build": {
+      "description": "检查最新的构建状态",
+      "command": "echo '请在 Cursor 聊天中询问：列出 Build WinUnlock 工作流程的最新运行'"
+    },
+    "auto-fix": {
+      "description": "自动修复构建错误直到成功（交互式）",
+      "command": "./scripts/quick-auto-fix.sh"
+    }
+  }
+}
+

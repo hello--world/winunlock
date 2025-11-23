@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "auto-build": "node scripts/auto-build-until-success.js",
-    "auto-fix": "./scripts/quick-auto-fix.sh"
+    "auto-fix": "./scripts/quick-auto-fix.sh",
+    "start-auto": "./scripts/start-auto-build.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.0"
