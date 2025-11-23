@@ -10,7 +10,9 @@
     "tauri": "tauri",
     "auto-build": "node scripts/auto-build-until-success.js",
     "auto-fix": "./scripts/quick-auto-fix.sh",
-    "start-auto": "./scripts/start-auto-build.sh"
+    "start-auto": "./scripts/start-auto-build.sh",
+    "wait-build": "node scripts/wait-for-build.js",
+    "auto-build-wait": "node scripts/auto-build-and-wait.js"
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.0"
