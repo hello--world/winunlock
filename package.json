@@ -12,7 +12,11 @@
     "auto-fix": "./scripts/quick-auto-fix.sh",
     "start-auto": "./scripts/start-auto-build.sh",
     "wait-build": "node scripts/wait-for-build.js",
-    "auto-build-wait": "node scripts/auto-build-and-wait.js"
+    "auto-build-wait": "node scripts/auto-build-and-wait.js",
+    "auto-build-wait:auto": "node scripts/auto-build-and-wait.js --auto",
+    "extract-errors": "node scripts/extract-build-errors.js",
+    "get-logs": "node scripts/get-workflow-logs.js",
+    "check-workflow": "node scripts/check-workflow.js"
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.0"

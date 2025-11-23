@@ -12,6 +12,7 @@
 
 import https from 'https';
 import { checkBuildStatus, getWorkflowRunDetails } from './check-workflow.js';
+import { getWorkflowRunLogs } from './get-workflow-logs.js';
 
 const CONFIG = {
   owner: 'hello--world',
@@ -88,13 +89,41 @@ async function waitForBuild(commitSha, options = {}) {
       } else if (result.success === false) {
         console.log('\n❌ 构建失败！');
         const details = await getWorkflowRunDetails(result.run.id);
+        
+        // 自动获取失败日志
+        let logs = null;
+        let errorSummary = null;
+        
+        if (options.autoFetchLogs !== false) {
+          try {
+            console.log('📥 正在获取失败日志...');
+            logs = await getWorkflowRunLogs(result.run.id, {
+              onlyFailed: true,
+              verbose: false
+            });
+            
+            if (logs && logs.allLogs) {
+              errorSummary = {
+                failedJobs: logs.failedJobs.length,
+                failedSteps: logs.failedSteps.length,
+                logText: logs.allLogs
+              };
+              console.log(`✅ 已获取日志（${logs.failedJobs.length} 个失败的 job）`);
+            }
+          } catch (error) {
+            console.warn(`⚠️  无法获取日志: ${error.message}`);
+          }
+        }
+        
         return {
           success: false,
           runId: result.run.id,
           run: result.run,
           details: details,
           message: '构建失败',
-          errorUrl: result.run.html_url
+          errorUrl: result.run.html_url,
+          logs: logs,
+          errorSummary: errorSummary
         };
       }
 
@@ -141,6 +170,13 @@ async function main() {
         console.log(`\n❌ 构建失败！`);
         console.log(`📦 运行 ID: ${result.runId}`);
         console.log(`🔗 查看错误: ${result.errorUrl}`);
+        
+        if (result.errorSummary) {
+          console.log(`\n📋 错误摘要:`);
+          console.log(`   失败的 Jobs: ${result.errorSummary.failedJobs}`);
+          console.log(`   失败的 Steps: ${result.errorSummary.failedSteps}`);
+        }
+        
         console.log(`\n💡 要获取详细错误日志，请在 Cursor 中使用：`);
         console.log(`   "下载工作流程运行 #${result.runId} 的日志"`);
         process.exit(1);

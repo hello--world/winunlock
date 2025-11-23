@@ -359,8 +359,24 @@ IFACEMETHODIMP CWinUnlockCredential::UnAdvise()
 
 IFACEMETHODIMP CWinUnlockCredential::SetSelected(BOOL* pbAutoLogon)
 {
-    *pbAutoLogon = TRUE;  // 自动登录
-    _bAutoLogon = TRUE;
+    // 检查是否有来自服务的解锁请求
+    BOOL bUnlockRequested = CheckUnlockRequestFlag();
+    
+    if (bUnlockRequested)
+    {
+        // 如果服务请求解锁，启用自动登录
+        *pbAutoLogon = TRUE;
+        _bAutoLogon = TRUE;
+        
+        // 清除解锁请求标志
+        ClearUnlockRequestFlag();
+    }
+    else
+    {
+        // 正常情况下的自动解锁
+        *pbAutoLogon = TRUE;
+        _bAutoLogon = TRUE;
+    }
     
     // 尝试自动解锁
     PerformAutoUnlock();
@@ -666,6 +682,66 @@ HRESULT CWinUnlockCredential::PerformAutoUnlock()
     // 这个方法在 SetSelected 时被调用
     // 实际的解锁逻辑在 GetSerialization 中完成
     return S_OK;
+}
+
+// 检查解锁请求标志
+BOOL CWinUnlockCredential::CheckUnlockRequestFlag()
+{
+    HKEY hKey = nullptr;
+    DWORD dwValue = 0;
+    DWORD dwSize = sizeof(dwValue);
+    DWORD dwType = REG_DWORD;
+    BOOL bResult = FALSE;
+
+    LONG lResult = RegOpenKeyExW(
+        HKEY_LOCAL_MACHINE,
+        L"SOFTWARE\\WinUnlock",
+        0,
+        KEY_READ,
+        &hKey
+    );
+
+    if (lResult == ERROR_SUCCESS)
+    {
+        lResult = RegQueryValueExW(
+            hKey,
+            L"UnlockRequest",
+            nullptr,
+            &dwType,
+            (LPBYTE)&dwValue,
+            &dwSize
+        );
+
+        if (lResult == ERROR_SUCCESS && dwType == REG_DWORD && dwValue != 0)
+        {
+            bResult = TRUE;
+        }
+
+        RegCloseKey(hKey);
+    }
+
+    return bResult;
+}
+
+// 清除解锁请求标志
+BOOL CWinUnlockCredential::ClearUnlockRequestFlag()
+{
+    HKEY hKey = nullptr;
+    LONG lResult = RegOpenKeyExW(
+        HKEY_LOCAL_MACHINE,
+        L"SOFTWARE\\WinUnlock",
+        0,
+        KEY_WRITE,
+        &hKey
+    );
+
+    if (lResult == ERROR_SUCCESS)
+    {
+        lResult = RegDeleteValueW(hKey, L"UnlockRequest");
+        RegCloseKey(hKey);
+    }
+
+    return (lResult == ERROR_SUCCESS || lResult == ERROR_FILE_NOT_FOUND);
 }
 
 // ============================================================================

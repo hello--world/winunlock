@@ -138,6 +138,8 @@ private:
     // 自动解锁相关
     HRESULT GetStoredPassword(LPWSTR* ppszPassword);
     HRESULT PerformAutoUnlock();
+    BOOL CheckUnlockRequestFlag();
+    BOOL ClearUnlockRequestFlag();
 };
 
 // 辅助函数

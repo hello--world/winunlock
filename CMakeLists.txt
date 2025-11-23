@@ -9,7 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# 添加源文件
+# 添加凭据提供程序 DLL
 add_library(WinUnlock SHARED
     CredentialProvider.cpp
     CredentialProvider.h
@@ -17,8 +17,18 @@ add_library(WinUnlock SHARED
     WinUnlock.def
 )
 
+# 添加 Windows 服务可执行文件
+add_executable(WinUnlockService
+    WinUnlockService.cpp
+    WinUnlockService.h
+)
+
 # 包含目录
 target_include_directories(WinUnlock PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_include_directories(WinUnlockService PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -99,10 +109,23 @@ target_link_libraries(WinUnlock PRIVATE
     ntdll
 )
 
+# 服务链接库
+target_link_libraries(WinUnlockService PRIVATE
+    wtsapi32
+    advapi32
+    user32
+    shlwapi
+)
+
 # 设置 DLL 输出名称
 set_target_properties(WinUnlock PROPERTIES
     OUTPUT_NAME "WinUnlock"
     PREFIX ""
+)
+
+# 设置服务输出名称
+set_target_properties(WinUnlockService PROPERTIES
+    OUTPUT_NAME "WinUnlockService"
 )
 
 # 编译选项
@@ -120,8 +143,15 @@ if(MSVC)
     set_target_properties(WinUnlock PROPERTIES
         LINK_FLAGS "/SUBSYSTEM:WINDOWS"
     )
+    # 服务使用控制台子系统（用于调试）
+    set_target_properties(WinUnlockService PROPERTIES
+        LINK_FLAGS "/SUBSYSTEM:CONSOLE"
+    )
     # 确保使用 Windows 10 SDK
     set_target_properties(WinUnlock PROPERTIES
+        VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0"
+    )
+    set_target_properties(WinUnlockService PROPERTIES
         VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0"
     )
 else()

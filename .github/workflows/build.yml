@@ -75,14 +75,16 @@ jobs:
           Write-Host "::error::Build failed. Errors:"
           Write-Host "${{ steps.build.outputs.build_errors }}"
       
-      - name: Upload DLL artifact
+      - name: Upload artifacts
         if: steps.build.outputs.build_status == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: WinUnlock.dll
+          name: WinUnlock-Binaries
           path: |
             build/bin/Release/WinUnlock.dll
             build/bin/WinUnlock.dll
+            build/bin/Release/WinUnlockService.exe
+            build/bin/WinUnlockService.exe
           retention-days: 30
 
   build-tauri-app:
@@ -111,8 +113,9 @@ jobs:
       - name: Download DLL artifact
         uses: actions/download-artifact@v4
         with:
-          name: WinUnlock.dll
+          name: WinUnlock-Binaries
           path: src-tauri/
+          pattern: '**/WinUnlock.dll'
       
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
