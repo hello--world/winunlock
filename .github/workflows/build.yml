@@ -12,7 +12,6 @@ jobs:
   build-credential-provider:
     name: Build Credential Provider DLL
     runs-on: windows-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
       - name: Checkout code
@@ -51,9 +50,31 @@ jobs:
           Write-Host "CMake configuration completed successfully"
       
       - name: Build DLL
+        id: build
+        continue-on-error: true
+        shell: pwsh
         run: |
           cd build
-          cmake --build . --config Release
+          $buildOutput = cmake --build . --config Release 2>&1
+          $buildExitCode = $LASTEXITCODE
+          Write-Host $buildOutput
+          if ($buildExitCode -ne 0) {
+            Write-Host "::error::Build failed with exit code $buildExitCode"
+            echo "build_status=failed" >> $env:GITHUB_OUTPUT
+            echo "build_errors<<EOF" >> $env:GITHUB_OUTPUT
+            echo $buildOutput >> $env:GITHUB_OUTPUT
+            echo "EOF" >> $env:GITHUB_OUTPUT
+            exit $buildExitCode
+          } else {
+            echo "build_status=success" >> $env:GITHUB_OUTPUT
+          }
+      
+      - name: Report build errors
+        if: steps.build.outputs.build_status == 'failed'
+        shell: pwsh
+        run: |
+          Write-Host "::error::Build failed. Errors:"
+          Write-Host "${{ steps.build.outputs.build_errors }}"
       
       - name: Upload DLL artifact
         uses: actions/upload-artifact@v4
@@ -68,7 +89,7 @@ jobs:
     name: Build Tauri Application
     runs-on: windows-latest
     needs: build-credential-provider
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: needs.build-credential-provider.result == 'success' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request')
     
     steps:
       - name: Checkout code

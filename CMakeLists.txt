@@ -24,8 +24,13 @@ target_include_directories(WinUnlock PRIVATE
 
 # 确保 Windows SDK 包含路径被正确设置
 if(MSVC)
-    # Visual Studio 和 CMake 应该自动处理 Windows SDK 路径
-    # 但我们可以显式添加以确保 credentialprovider.h 能被找到
+    # 获取 Windows SDK 版本（CMake 自动检测的）
+    if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+        set(WINDOWS_SDK_VERSION ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
+    else()
+        set(WINDOWS_SDK_VERSION "10.0")
+    endif()
+    
     # 获取 Windows SDK 根目录
     get_filename_component(WINDOWS_SDK_DIR "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows Kits\\Installed Roots;KitsRoot10]" ABSOLUTE CACHE)
     
@@ -34,23 +39,49 @@ if(MSVC)
         set(WINDOWS_SDK_DIR "$ENV{ProgramFiles(x86)}/Windows Kits/10" CACHE PATH "Windows SDK Directory")
     endif()
     
+    # 尝试多个可能的 SDK 版本路径
+    set(POSSIBLE_SDK_PATHS
+        "${WINDOWS_SDK_DIR}/Include/${WINDOWS_SDK_VERSION}/um"
+        "${WINDOWS_SDK_DIR}/Include/10.0.26100.0/um"
+        "${WINDOWS_SDK_DIR}/Include/10.0.22621.0/um"
+        "${WINDOWS_SDK_DIR}/Include/10.0.22000.0/um"
+        "${WINDOWS_SDK_DIR}/Include/10.0.19041.0/um"
+    )
+    
+    # 查找存在的 SDK 路径
+    foreach(SDK_PATH ${POSSIBLE_SDK_PATHS})
+        if(EXISTS "${SDK_PATH}/credentialprovider.h")
+            message(STATUS "Found credentialprovider.h at: ${SDK_PATH}")
+            get_filename_component(SDK_UM_DIR ${SDK_PATH} ABSOLUTE)
+            get_filename_component(SDK_SHARED_DIR "${SDK_UM_DIR}/../shared" ABSOLUTE)
+            target_include_directories(WinUnlock PRIVATE
+                ${SDK_UM_DIR}
+                ${SDK_SHARED_DIR}
+            )
+            message(STATUS "Added Windows SDK include paths: ${SDK_UM_DIR}, ${SDK_SHARED_DIR}")
+            break()
+        endif()
+    endforeach()
+    
+    # 如果还是没找到，尝试查找所有版本
     if(EXISTS "${WINDOWS_SDK_DIR}/Include")
-        # 查找最新的 SDK 版本
         file(GLOB SDK_VERSIONS "${WINDOWS_SDK_DIR}/Include/*")
         if(SDK_VERSIONS)
             list(SORT SDK_VERSIONS)
             list(REVERSE SDK_VERSIONS)
-            list(GET SDK_VERSIONS 0 LATEST_SDK)
-            get_filename_component(LATEST_SDK_VERSION ${LATEST_SDK} NAME)
-            message(STATUS "Found Windows SDK version: ${LATEST_SDK_VERSION}")
-            message(STATUS "Adding Windows SDK include paths")
-            target_include_directories(WinUnlock PRIVATE
-                "${WINDOWS_SDK_DIR}/Include/${LATEST_SDK_VERSION}/um"
-                "${WINDOWS_SDK_DIR}/Include/${LATEST_SDK_VERSION}/shared"
-            )
+            foreach(SDK_VERSION_DIR ${SDK_VERSIONS})
+                set(TEST_PATH "${SDK_VERSION_DIR}/um/credentialprovider.h")
+                if(EXISTS "${TEST_PATH}")
+                    get_filename_component(SDK_VERSION ${SDK_VERSION_DIR} NAME)
+                    message(STATUS "Found credentialprovider.h in SDK version: ${SDK_VERSION}")
+                    target_include_directories(WinUnlock PRIVATE
+                        "${SDK_VERSION_DIR}/um"
+                        "${SDK_VERSION_DIR}/shared"
+                    )
+                    break()
+                endif()
+            endforeach()
         endif()
-    else()
-        message(WARNING "Windows SDK directory not found. CMake should auto-detect it.")
     endif()
 endif()
 
