@@ -9,6 +9,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# 添加源文件
+add_library(WinUnlock SHARED
+    CredentialProvider.cpp
+    CredentialProvider.h
+    dllmain.cpp
+    WinUnlock.def
+)
+
 # 对于 Visual Studio 生成器，确保 Release 配置输出到正确位置
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
     set_target_properties(WinUnlock PROPERTIES
@@ -18,14 +26,6 @@ if(CMAKE_GENERATOR MATCHES "Visual Studio")
         RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/bin/MinSizeRel
     )
 endif()
-
-# 添加源文件
-add_library(WinUnlock SHARED
-    CredentialProvider.cpp
-    CredentialProvider.h
-    dllmain.cpp
-    WinUnlock.def
-)
 
 # 包含目录
 target_include_directories(WinUnlock PRIVATE
