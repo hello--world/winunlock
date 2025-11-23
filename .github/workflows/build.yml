@@ -51,7 +51,6 @@ jobs:
       
       - name: Build DLL
         id: build
-        continue-on-error: true
         shell: pwsh
         run: |
           cd build
@@ -90,7 +89,7 @@ jobs:
     name: Build Tauri Application
     runs-on: windows-latest
     needs: build-credential-provider
-    if: needs.build-credential-provider.outputs.build_status == 'success'
+    if: needs.build-credential-provider.result == 'success'
     
     steps:
       - name: Checkout code
