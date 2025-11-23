@@ -121,12 +121,14 @@ if(MSVC)
     set(CMAKE_SYSTEM_VERSION "10.0" CACHE STRING "Windows SDK Version")
     
     target_compile_options(WinUnlock PRIVATE
-        /W4
+        /W3
         /WX-
         /EHsc
         /permissive-
         /wd4996  # 禁用已弃用函数警告
         /wd4267  # 禁用 size_t 转换警告
+        /wd4244  # 禁用类型转换警告
+        /wd4305  # 禁用截断警告
     )
     # 设置子系统为 Windows
     set_target_properties(WinUnlock PROPERTIES
