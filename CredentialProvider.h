@@ -30,6 +30,7 @@
 #include <shlobj.h>
 #include <strsafe.h>
 #include <wincrypt.h>
+#include <comdef.h>
 #include <ntsecapi.h>
 #include <wincred.h>
 #include <new>
