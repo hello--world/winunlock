@@ -173,6 +173,52 @@ async function getWorkflowRunDetails(runId) {
   }
 }
 
+/**
+ * 检查构建状态（用于 wait-for-build.js）
+ * 返回简化的状态信息
+ */
+async function checkBuildStatus() {
+  try {
+    // 获取工作流程
+    const workflows = await githubApiRequest(
+      `/repos/${CONFIG.owner}/${CONFIG.repo}/actions/workflows`
+    );
+    
+    const buildWorkflow = workflows.workflows?.find(w => w.name === CONFIG.workflowName);
+    if (!buildWorkflow) {
+      return { run: null, success: null, status: 'not_found' };
+    }
+    
+    // 获取最新运行
+    const response = await githubApiRequest(
+      `/repos/${CONFIG.owner}/${CONFIG.repo}/actions/workflows/${buildWorkflow.id}/runs?branch=${CONFIG.branch}&per_page=1`
+    );
+    
+    if (!response.workflow_runs || response.workflow_runs.length === 0) {
+      return { run: null, success: null, status: 'no_runs' };
+    }
+    
+    const run = response.workflow_runs[0];
+    const status = run.status; // queued, in_progress, completed
+    const conclusion = run.conclusion; // success, failure, cancelled, etc.
+    
+    let success = null;
+    if (status === 'completed') {
+      success = conclusion === 'success';
+    }
+    
+    return {
+      run: run,
+      success: success,
+      status: status,
+      conclusion: conclusion
+    };
+  } catch (error) {
+    console.error('检查构建状态时出错:', error.message);
+    return { run: null, success: null, status: 'error', error: error.message };
+  }
+}
+
 async function main() {
   console.log('🚀 检查 GitHub Actions 工作流程状态\n');
   console.log('='.repeat(60) + '\n');
