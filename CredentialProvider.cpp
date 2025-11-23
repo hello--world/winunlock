@@ -4,7 +4,6 @@
 #include <userenv.h>
 #include <sddl.h>
 #include <ntsecapi.h>
-#include <subauth.h>
 #include <new>
 
 // 前向声明 DLL 引用计数函数
