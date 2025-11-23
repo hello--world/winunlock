@@ -42,15 +42,15 @@ IFACEMETHODIMP CWinUnlockProviderFactory::QueryInterface(REFIID riid, void** ppv
 
 IFACEMETHODIMP_(ULONG) CWinUnlockProviderFactory::AddRef()
 {
-    return InterlockedIncrement(&_cRef);
+    return static_cast<ULONG>(InterlockedIncrement(&_cRef));
 }
 
 IFACEMETHODIMP_(ULONG) CWinUnlockProviderFactory::Release()
 {
     long cRef = InterlockedDecrement(&_cRef);
-    if (!cRef)
+    if (cRef == 0)
         delete this;
-    return cRef;
+    return static_cast<ULONG>(cRef);
 }
 
 IFACEMETHODIMP CWinUnlockProviderFactory::CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppv)
@@ -131,15 +131,15 @@ IFACEMETHODIMP CWinUnlockCredentialProvider::QueryInterface(REFIID riid, void** 
 
 IFACEMETHODIMP_(ULONG) CWinUnlockCredentialProvider::AddRef()
 {
-    return InterlockedIncrement(&_cRef);
+    return static_cast<ULONG>(InterlockedIncrement(&_cRef));
 }
 
 IFACEMETHODIMP_(ULONG) CWinUnlockCredentialProvider::Release()
 {
     long cRef = InterlockedDecrement(&_cRef);
-    if (!cRef)
+    if (cRef == 0)
         delete this;
-    return cRef;
+    return static_cast<ULONG>(cRef);
 }
 
 IFACEMETHODIMP CWinUnlockCredentialProvider::SetUsageScenario(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus, DWORD dwFlags)
@@ -299,15 +299,15 @@ IFACEMETHODIMP CWinUnlockCredential::QueryInterface(REFIID riid, void** ppv)
 
 IFACEMETHODIMP_(ULONG) CWinUnlockCredential::AddRef()
 {
-    return InterlockedIncrement(&_cRef);
+    return static_cast<ULONG>(InterlockedIncrement(&_cRef));
 }
 
 IFACEMETHODIMP_(ULONG) CWinUnlockCredential::Release()
 {
     long cRef = InterlockedDecrement(&_cRef);
-    if (!cRef)
+    if (cRef == 0)
         delete this;
-    return cRef;
+    return static_cast<ULONG>(cRef);
 }
 
 HRESULT CWinUnlockCredential::Initialize(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus, const CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR* rgFieldDescriptors, const FIELD_STATE_PAIR* rgFieldStatePairs)
