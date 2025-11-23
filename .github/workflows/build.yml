@@ -51,7 +51,6 @@ jobs:
       
       - name: Build DLL
         id: build
-        continue-on-error: true
         shell: pwsh
         run: |
           cd build
@@ -69,20 +68,39 @@ jobs:
             echo "build_status=success" >> $env:GITHUB_OUTPUT
           }
       
-      - name: Report build errors
-        if: steps.build.outputs.build_status == 'failed'
+      - name: Find DLL file
+        id: find_dll
         shell: pwsh
         run: |
-          Write-Host "::error::Build failed. Errors:"
-          Write-Host "${{ steps.build.outputs.build_errors }}"
+          $dllPaths = @(
+            "build/bin/Release/WinUnlock.dll",
+            "build/bin/WinUnlock.dll",
+            "build/Release/WinUnlock.dll",
+            "build/WinUnlock.dll"
+          )
+          $foundDll = $null
+          foreach ($path in $dllPaths) {
+            if (Test-Path $path) {
+              $foundDll = $path
+              Write-Host "Found DLL at: $path"
+              echo "dll_path=$path" >> $env:GITHUB_OUTPUT
+              break
+            }
+          }
+          if (-not $foundDll) {
+            Write-Host "::error::DLL file not found in any expected location"
+            Write-Host "Searched paths:"
+            foreach ($path in $dllPaths) {
+              Write-Host "  - $path"
+            }
+            exit 1
+          }
       
       - name: Upload DLL artifact
         uses: actions/upload-artifact@v4
         with:
           name: WinUnlock.dll
-          path: |
-            build/bin/Release/WinUnlock.dll
-            build/bin/WinUnlock.dll
+          path: ${{ steps.find_dll.outputs.dll_path }}
           retention-days: 30
 
   build-tauri-app:
